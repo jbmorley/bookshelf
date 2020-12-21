@@ -1,0 +1,20 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+
+[packages]
+
+python-dateutil = "*"
+python-frontmatter = "*"
+requests = "*"
+pick = "*"
+pytz = "*"
+titlecase = "*"
+lxml = "*"
+jinja2 = "*"
+
+[requires]
+
+python_version = "3"
