@@ -92,9 +92,8 @@ def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
-    documents = load_items(DIRECTORY)
-
     signal.signal(signal.SIGINT, signal_handler)
+    documents = load_items(DIRECTORY)
     picker = SearchablePicker(options=documents,
                               title="Books",
                               options_map_func=lambda x: x.title)
