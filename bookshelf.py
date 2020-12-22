@@ -181,13 +181,18 @@ def main():
         selected.status = STATUSES[new_status_index]
         selected.save()
 
+    def cancel(picker):
+        exit(0)
+
     signal.signal(signal.SIGINT, signal_handler)
     documents = load_items(DIRECTORY)
+    curses.set_escdelay(25)
     picker = SearchablePicker(options=documents,
-                              title="Books",
+                              title="Books (all shelves)",
                               options_map_func=lambda x: x.summary)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
+    picker.register_custom_handler(27, cancel)
     option, index = picker.start()
 
 
