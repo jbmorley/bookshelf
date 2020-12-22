@@ -3,12 +3,14 @@
 import argparse
 import curses
 import datetime
+import enum
 import os
 import signal
 import string
 import sys
 import time
 
+import dateutil.tz
 import frontmatter
 import pick
 
@@ -39,6 +41,51 @@ class Item(object):
     @property
     def title(self):
         return  ", ".join([self.document.metadata["title"]] + self.document.metadata["authors"])
+
+    @property
+    def status(self):
+        return Status(self.document.metadata["status"])
+
+    @status.setter
+    def status(self, status):
+        self.document.metadata["status"] = status.value
+
+    @property
+    def summary(self):
+        return f"{self.title} [{self.status.value}]"
+
+    @property
+    def date(self):
+        return dateutil.parser.parse(self.document.metadata["date"])
+
+    @date.setter
+    def date(self, date):
+        if date is None:
+            try:
+                del self.document.metadata["date"]
+            except KeyError:
+                pass
+            return
+        self.document.metadata["date"] = date.isoformat()
+
+    @property
+    def end_date(self):
+        return dateutil.parser.parse(self.document.metadata["end_date"])
+
+    @end_date.setter
+    def end_date(self, end_date):
+        if end_date is None:
+            try:
+                del self.document.metadata["end_date"]
+            except KeyError:
+                pass
+            return
+        self.document.metadata["end_date"] = end_date.isoformat()
+
+    def save(self):
+        with open(self.path, "w") as fh:
+            fh.write(frontmatter.dumps(self.document))
+            fh.write("\n")
 
 
 def signal_handler(sig, frame):
@@ -88,15 +135,49 @@ class SearchablePicker(pick.Picker):
             self.register_custom_handler(ord(letter), key_handler(letter))
 
 
+class Status(enum.Enum):
+    TO_READ = "to-read"
+    CURRENTLY_READING = "currently-reading"
+    READ = "read"
+    ABANDONED = "abandoned"
+
+STATUSES = [
+    Status.TO_READ,
+    Status.CURRENTLY_READING,
+    Status.READ,
+    Status.ABANDONED,
+]
+
+
+def tznow():
+    return datetime.datetime.now().replace(tzinfo=dateutil.tz.tzlocal())
+
+
 def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
+
+    def cycle_shelf(picker):
+        selected, index = picker.get_selected()
+        new_status_index = (STATUSES.index(selected.status) + 1) % len(STATUSES)
+        new_status = STATUSES[new_status_index]
+        selected.status = new_status
+        if new_status == Status.TO_READ:
+            selected.date = None
+            selected.end_date = None
+        elif new_status == Status.CURRENTLY_READING:
+            selected.date = tznow()
+            selected.end_date = None
+        elif new_status == Status.READ or new_status == Status.ABANDONED:
+            selected.end_date = tznow()
+        selected.save()
 
     signal.signal(signal.SIGINT, signal_handler)
     documents = load_items(DIRECTORY)
     picker = SearchablePicker(options=documents,
                               title="Books",
-                              options_map_func=lambda x: x.title)
+                              options_map_func=lambda x: x.summary)
+    picker.register_custom_handler(ord('1'), cycle_shelf)
     option, index = picker.start()
     print(book_title(option))
 
