@@ -40,7 +40,7 @@ class Item(object):
 
     @property
     def title(self):
-        return  ", ".join([self.document.metadata["title"]] + self.document.metadata["authors"])
+        return  self.document.metadata["title"]
 
     @property
     def status(self):
@@ -49,6 +49,14 @@ class Item(object):
     @status.setter
     def status(self, status):
         self.document.metadata["status"] = status.value
+        if status == Status.TO_READ:
+            self.date = None
+            self.end_date = None
+        elif status == Status.CURRENTLY_READING:
+            self.date = tznow()
+            self.end_date = None
+        elif status == Status.READ or status == Status.ABANDONED:
+            self.end_date = tznow()
 
     @property
     def summary(self):
@@ -157,19 +165,20 @@ def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
-    def cycle_shelf(picker):
+    def next_shelf(picker):
         selected, index = picker.get_selected()
-        new_status_index = (STATUSES.index(selected.status) + 1) % len(STATUSES)
-        new_status = STATUSES[new_status_index]
-        selected.status = new_status
-        if new_status == Status.TO_READ:
-            selected.date = None
-            selected.end_date = None
-        elif new_status == Status.CURRENTLY_READING:
-            selected.date = tznow()
-            selected.end_date = None
-        elif new_status == Status.READ or new_status == Status.ABANDONED:
-            selected.end_date = tznow()
+        new_status_index = (STATUSES.index(selected.status) + 1)
+        if new_status_index >= len(STATUSES):
+            return
+        selected.status = STATUSES[new_status_index]
+        selected.save()
+
+    def previous_shelf(picker):
+        selected, index = picker.get_selected()
+        new_status_index = (STATUSES.index(selected.status) - 1)
+        if new_status_index < 0:
+            return
+        selected.status = STATUSES[new_status_index]
         selected.save()
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -177,9 +186,9 @@ def main():
     picker = SearchablePicker(options=documents,
                               title="Books",
                               options_map_func=lambda x: x.summary)
-    picker.register_custom_handler(ord('1'), cycle_shelf)
+    picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
+    picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     option, index = picker.start()
-    print(book_title(option))
 
 
 if __name__ == "__main__":
