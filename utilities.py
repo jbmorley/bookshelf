@@ -101,3 +101,16 @@ def interactive_search(search_callback):
             default_index = 0
 
     return selected
+
+
+def add_book(directory, search_callback):
+    new_book = interactive_search(search_callback=search_callback)
+    cover_basename = f"{new_book.basename}.jpg"
+    utilities.download_image(new_book.thumbnail, os.path.join(directory, cover_basename))
+    metadata = dict(new_book.metadata)
+    metadata["cover"] = cover_basename
+    metadata["status"] = "to-read"
+    contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
+    with open(os.path.join(directory, f"{new_book.basename}.markdown"), "w") as fh:
+        fh.write(contents)
+        fh.write("\n")
