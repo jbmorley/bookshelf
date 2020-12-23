@@ -1,9 +1,11 @@
 import collections
+import datetime
 import json
 import os
 import re
 import webbrowser
 
+import dateutil.tz
 import pick
 import requests
 
@@ -17,6 +19,10 @@ class BookNotFound(Exception):
 
 def set_escdelay(delay):
     os.environ.setdefault('ESCDELAY', str(delay))
+
+
+def tznow():
+    return datetime.datetime.now().replace(tzinfo=dateutil.tz.tzlocal())
 
 
 def download_image(url, destination):

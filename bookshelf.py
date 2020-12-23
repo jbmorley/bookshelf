@@ -55,10 +55,10 @@ class Item(object):
             self.date = None
             self.end_date = None
         elif status == Status.CURRENTLY_READING:
-            self.date = tznow()
+            self.date = utilities.tznow()
             self.end_date = None
         elif status == Status.READ or status == Status.ABANDONED:
-            self.end_date = tznow()
+            self.end_date = utilities.tznow()
 
     @property
     def summary(self):
@@ -157,10 +157,6 @@ STATUSES = [
     Status.READ,
     Status.ABANDONED,
 ]
-
-
-def tznow():
-    return datetime.datetime.now().replace(tzinfo=dateutil.tz.tzlocal())
 
 
 def main():
