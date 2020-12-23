@@ -1,4 +1,5 @@
 import collections
+import curses
 import datetime
 import json
 import os
@@ -68,6 +69,8 @@ def interactive_search(search_callback):
             return None, -2
 
         def previous(picker):
+            if page == 0:
+                return
             return None, -5
 
         def refine(picker):
@@ -88,7 +91,9 @@ def interactive_search(search_callback):
                              default_index=default_index)
         picker.register_custom_handler(ord('v'),  show_webpage)
         picker.register_custom_handler(ord('n'),  next)
+        picker.register_custom_handler(curses.KEY_RIGHT,  next)
         picker.register_custom_handler(ord('p'),  previous)
+        picker.register_custom_handler(curses.KEY_LEFT,  previous)
         picker.register_custom_handler(ord('r'),  refine)
         picker.register_custom_handler(ord('i'),  inspect)
         picker.register_custom_handler(ord('t'),  thumbnail)
@@ -108,7 +113,7 @@ def interactive_search(search_callback):
             print(selected.metadata)
             input("Press any key to continue...")
         elif index == -5:
-            page = page - 1
+            page = max(page - 1, 0)
             default_index = 0
 
     return selected
