@@ -53,9 +53,6 @@ def interactive_search(search_callback):
             selection, index = picker.get_selected()
             webbrowser.open(selection.url)
 
-        def skip(picker):
-            return None, -1
-
         def next(picker):
             return None, -2
 
@@ -74,12 +71,11 @@ def interactive_search(search_callback):
             webbrowser.open(selection.thumbnail)
 
         picker = pick.Picker(books,
-                             f"[Page {page}]\n\nQuery: {query}\n\nv - view\nt - view thumbnail\ns - skip\nn - next page\np - previous page\nr - refine query",
+                             f"[Page {page}]\n\nQuery: {query}\n\nv - view\nt - view thumbnail\nn - next page\np - previous page\nr - refine query",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
         picker.register_custom_handler(ord('v'),  show_webpage)
-        picker.register_custom_handler(ord('s'),  skip)
         picker.register_custom_handler(ord('n'),  next)
         picker.register_custom_handler(ord('p'),  previous)
         picker.register_custom_handler(ord('r'),  refine)
@@ -87,8 +83,6 @@ def interactive_search(search_callback):
         picker.register_custom_handler(ord('t'),  thumbnail)
         selected, index = picker.start()
         if index >= 0:
-            break
-        if index == -1:
             break
         elif index == -2:
             page = page + 1
