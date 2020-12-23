@@ -12,89 +12,12 @@ import frontmatter
 import pick
 import requests
 
+import googlebooks
 import utilities
 
 
 BOOKS_DIRECTORY = "~/Projects/jbmorley.co.uk/content/about/books/"
 
-
-Document = collections.namedtuple("Document", ["content", "metadata"])
-
-class GoogleBook(object):
-
-    def __init__(self, data):
-        self._data = data
-
-    @property
-    def id(self):
-        return self._data["id"]
-
-    @property
-    def language(self):
-        return self._data["volumeInfo"]["language"]
-
-    @property
-    def title(self):
-        return self._data["volumeInfo"]["title"]
-
-    @property
-    def authors(self):
-        try:
-            return self._data["volumeInfo"]["authors"]
-        except KeyError:
-            return []
-
-    @property
-    def url(self):
-        return self._data["volumeInfo"]["canonicalVolumeLink"]
-
-    @property
-    def thumbnail(self):
-        if "imageLinks" not in self._data["volumeInfo"]:
-            return None
-        return self._data["volumeInfo"]["imageLinks"]["thumbnail"] + "&fife=w400-h600"
-
-    @property
-    def isbn(self):
-        for identifier in self._data["volumeInfo"]["industryIdentifiers"]:
-            if identifier["type"] == "ISBN_10":
-                return identifier["identifier"]
-        raise KeyError("isbn")
-
-    @property
-    def isbn_13(self):
-        for identifier in self._data["volumeInfo"]["industryIdentifiers"]:
-            if identifier["type"] == "ISBN_13":
-                return identifier["identifier"]
-        raise KeyError("isbn_13")
-
-    @property
-    def metadata(self):
-        metadata = {
-            "title": self.title,
-            "authors": self.authors,
-            "category": "books",
-            "link": self.url,
-            "ids": {
-                "google_books": self.id,
-            }
-        }
-        try:
-            metadata["ids"]["isbn_10"] = self.isbn
-        except KeyError:
-            pass
-        try:
-            metadata["ids"]["isbn_13"] = self.isbn_13
-        except KeyError:
-            pass
-        return metadata
-
-    @property
-    def basename(self):
-        title = f"{self.title} {' '.join(self.authors)}"
-        title = re.sub(r"[^a-z0-9]+", " ", title.lower())
-        title = re.sub(r"\W+", "-", title.strip())
-        return title
 
 
 class BookNotFound(Exception):
@@ -106,7 +29,7 @@ def google_books(query, index=0):
     response_data = response.json()
     if response_data["totalItems"] < 1:
         raise BookNotFound()
-    return [GoogleBook(data) for data in response_data['items']]
+    return [googlebooks.GoogleBook(data) for data in response_data['items']]
 
 
 def google_interactive(query, details, accept_single_result=False):
@@ -157,7 +80,7 @@ def google_interactive(query, details, accept_single_result=False):
             webbrowser.open(selection.thumbnail)
 
         picker = pick.Picker(books,
-                             f"[Page {page}]\n\nDetails: {details}\nQuery: {query}\n\nv - view\nt - view thumbnail\ns - skip\nn - next page\np - previous page\nr - refine",
+                             f"[Page {page}]\n\nDetails: {details}\nQuery: {query}\n\nv - view\nt - view thumbnail\ns - skip\nn - next page\np - previous page\nr - refine query",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
@@ -204,7 +127,7 @@ def main():
     metadata = dict(new_book.metadata)
     metadata["cover"] = cover_basename
     metadata["status"] = "to-read"
-    contents = frontmatter.dumps(Document(content="", metadata=metadata))
+    contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
     with open(os.path.join(directory, f"{new_book.basename}.markdown"), "w") as fh:
         fh.write(contents)
         fh.write("\n")

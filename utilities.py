@@ -1,4 +1,10 @@
+import collections
+import re
+
 import requests
+
+
+Document = collections.namedtuple("Document", ["content", "metadata"])
 
 
 def download_image(url, destination):
@@ -7,3 +13,9 @@ def download_image(url, destination):
         with open(destination, 'wb') as fh:
             for chunk in r:
                 fh.write(chunk)
+
+
+def basename(name):
+    name = re.sub(r"[^a-z0-9]+", " ", name.lower())
+    name = re.sub(r"\W+", "-", name.strip())
+    return name
