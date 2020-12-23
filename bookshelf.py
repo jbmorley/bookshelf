@@ -23,15 +23,6 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-def load_items(path):
-    paths = [os.path.join(path, f) for f in os.listdir(path)
-             if (f.lower().endswith(".markdown") and
-                 not f.lower().endswith("index.markdown"))]
-    items = [books.Book(path) for path in paths]
-    items = sorted(items, key=lambda x: x.title)
-    return items
-
-
 def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
@@ -58,9 +49,8 @@ def main():
         exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
-    documents = load_items(DIRECTORY)
     utilities.set_escdelay(25)
-    picker = utilities.SearchablePicker(options=documents,
+    picker = utilities.SearchablePicker(options=books.load(DIRECTORY),
                                         title="Books (all shelves)",
                                         options_map_func=lambda x: x.summary)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)

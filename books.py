@@ -1,4 +1,5 @@
 import enum
+import os
 
 import dateutil
 import frontmatter
@@ -75,3 +76,12 @@ class Book(object):
         with open(self.path, "w") as fh:
             fh.write(frontmatter.dumps(self.document))
             fh.write("\n")
+
+
+def load(path):
+    paths = [os.path.join(path, f) for f in os.listdir(path)
+             if (f.lower().endswith(".markdown") and
+                 not f.lower().endswith("index.markdown"))]
+    books = [Book(path) for path in paths]
+    books = sorted(books, key=lambda x: x.title)
+    return books
