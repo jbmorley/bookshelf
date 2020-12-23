@@ -1,3 +1,5 @@
+import requests
+
 import utilities
 
 
@@ -73,3 +75,12 @@ class GoogleBook(object):
     @property
     def basename(self):
         return utilities.basename(f"{self.title} {' '.join(self.authors)}")
+
+
+def search(query, index=0):
+    response = requests.get("https://www.googleapis.com/books/v1/volumes",
+                            params={"q": query, "startIndex": index})
+    response_data = response.json()
+    if response_data["totalItems"] < 1:
+        raise utilities.BookNotFound()
+    return [GoogleBook(data) for data in response_data['items']]

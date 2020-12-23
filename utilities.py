@@ -7,6 +7,10 @@ import requests
 Document = collections.namedtuple("Document", ["content", "metadata"])
 
 
+class BookNotFound(Exception):
+    pass
+
+
 def download_image(url, destination):
     r = requests.get(url, stream=True)
     if r.status_code == 200:
