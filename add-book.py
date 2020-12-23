@@ -10,9 +10,6 @@ import googlebooks
 import utilities
 
 
-BOOKS_DIRECTORY = "~/Projects/jbmorley.co.uk/content/about/books/"
-
-
 def main():
     directory = books.library_path()
     parser = argparse.ArgumentParser(description="Add a new book")
