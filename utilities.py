@@ -65,6 +65,9 @@ def interactive_search(search_callback):
             selection, index = picker.get_selected()
             webbrowser.open(selection.url)
 
+        def cancel(picker):
+            return None, -1
+
         def next(picker):
             return None, -2
 
@@ -84,11 +87,13 @@ def interactive_search(search_callback):
             selection, index = picker.get_selected()
             webbrowser.open(selection.thumbnail)
 
+        set_escdelay(25)
         picker = pick.Picker(books,
                              f"[Page {page}]\n\nQuery: {query}\n\nv - view\nt - view thumbnail\nn - next page\np - previous page\nr - refine query",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
+        picker.register_custom_handler(27,  cancel)
         picker.register_custom_handler(ord('v'),  show_webpage)
         picker.register_custom_handler(ord('n'),  next)
         picker.register_custom_handler(curses.KEY_RIGHT,  next)
@@ -99,6 +104,8 @@ def interactive_search(search_callback):
         picker.register_custom_handler(ord('t'),  thumbnail)
         selected, index = picker.start()
         if index >= 0:
+            break
+        elif index == -1:
             break
         elif index == -2:
             page = page + 1
@@ -121,6 +128,8 @@ def interactive_search(search_callback):
 
 def add_book(directory, search_callback):
     new_book = interactive_search(search_callback=search_callback)
+    if new_book is None:
+        return
     cover_basename = f"{new_book.basename}.jpg"
     utilities.download_image(new_book.thumbnail, os.path.join(directory, cover_basename))
     metadata = dict(new_book.metadata)
