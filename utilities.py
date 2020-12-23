@@ -1,5 +1,6 @@
 import collections
 import json
+import os
 import re
 import webbrowser
 
@@ -12,6 +13,10 @@ Document = collections.namedtuple("Document", ["content", "metadata"])
 
 class BookNotFound(Exception):
     pass
+
+
+def set_escdelay(delay):
+    os.environ.setdefault('ESCDELAY', str(delay))
 
 
 def download_image(url, destination):

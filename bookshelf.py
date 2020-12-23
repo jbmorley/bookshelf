@@ -14,6 +14,8 @@ import dateutil.tz
 import frontmatter
 import pick
 
+import utilities
+
 
 DIRECTORY = os.path.expanduser("~/Projects/jbmorley.co.uk/content/about/books")
 
@@ -186,7 +188,7 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
     documents = load_items(DIRECTORY)
-    curses.set_escdelay(25)
+    utilities.set_escdelay(25)
     picker = SearchablePicker(options=documents,
                               title="Books (all shelves)",
                               options_map_func=lambda x: x.summary)
