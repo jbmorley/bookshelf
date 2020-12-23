@@ -5,6 +5,7 @@ import os
 
 import frontmatter
 
+import books
 import googlebooks
 import utilities
 
@@ -13,10 +14,7 @@ BOOKS_DIRECTORY = "~/Projects/jbmorley.co.uk/content/about/books/"
 
 
 def main():
-    try:
-        directory = os.path.expanduser(os.environ["BOOKSHELF_LIBRARY_PATH"])
-    except KeyError:
-        exit("Use the BOOKSHELF_LIBRARY_PATH environment variable to specify the location of your library.")
+    directory = books.library_path()
     parser = argparse.ArgumentParser(description="Add a new book")
     options = parser.parse_args()
     utilities.add_book(directory=directory, search_callback=googlebooks.search)

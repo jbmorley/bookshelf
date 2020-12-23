@@ -16,9 +16,6 @@ import books
 import utilities
 
 
-DIRECTORY = os.path.expanduser("~/Projects/jbmorley.co.uk/content/about/books")
-
-
 def signal_handler(sig, frame):
     sys.exit(0)
 
@@ -50,7 +47,8 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
-    picker = utilities.SearchablePicker(options=books.load(DIRECTORY),
+    directory = books.library_path()
+    picker = utilities.SearchablePicker(options=books.load(directory),
                                         title="Books (all shelves)",
                                         options_map_func=lambda x: x.summary)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
