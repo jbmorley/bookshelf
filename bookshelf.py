@@ -32,32 +32,26 @@ def load_items(path):
     return items
 
 
-STATUSES = [
-    books.Status.TO_READ,
-    books.Status.CURRENTLY_READING,
-    books.Status.READ,
-    books.Status.ABANDONED,
-]
-
-
 def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
+    statuses = list(books.Status)
+
     def next_shelf(picker):
         selected, index = picker.get_selected()
-        new_status_index = (STATUSES.index(selected.status) + 1)
-        if new_status_index >= len(STATUSES):
+        new_status_index = (statuses.index(selected.status) + 1)
+        if new_status_index >= len(statuses):
             return
-        selected.status = STATUSES[new_status_index]
+        selected.status = statuses[new_status_index]
         selected.save()
 
     def previous_shelf(picker):
         selected, index = picker.get_selected()
-        new_status_index = (STATUSES.index(selected.status) - 1)
+        new_status_index = (statuses.index(selected.status) - 1)
         if new_status_index < 0:
             return
-        selected.status = STATUSES[new_status_index]
+        selected.status = statuses[new_status_index]
         selected.save()
 
     def cancel(picker):
