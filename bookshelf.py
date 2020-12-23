@@ -6,7 +6,6 @@ import datetime
 import enum
 import os
 import signal
-import string
 import sys
 import time
 
@@ -18,20 +17,6 @@ import utilities
 
 
 DIRECTORY = os.path.expanduser("~/Projects/jbmorley.co.uk/content/about/books")
-
-
-class SearchString(object):
-
-    def __init__(self):
-        self.timestamp = datetime.datetime.now()
-        self.value = ""
-
-    def add(self, character):
-        now = datetime.datetime.now()
-        if now - self.timestamp > datetime.timedelta(seconds=1):
-            self.value = ""
-        self.value += character
-        self.timestamp = now
 
 
 class Item(object):
@@ -111,40 +96,6 @@ def load_items(path):
     return items
 
 
-class SearchablePicker(pick.Picker):
-
-    def __init__(self, *args, **kwargs):
-        super(SearchablePicker, self).__init__(*args, **kwargs)
-        pick.KEYS_UP = [curses.KEY_UP]
-        pick.KEYS_DOWN = [curses.KEY_DOWN]
-        search = SearchString()
-
-        def key_handler(character):
-            def inner(picker):
-                search.add(character)
-                destination = -1
-                for index, details in enumerate(picker.options):
-                    title = picker.options_map_func(details)
-                    if title.lower().startswith(search.value):
-                        destination = index
-                        break
-                selected, index = picker.get_selected()
-                if destination == -1 or destination == index:
-                    return
-                elif destination > index:
-                    while index < destination:
-                        picker.move_down()
-                        selected, index = picker.get_selected()
-                else:
-                    while index > destination:
-                        picker.move_up()
-                        selected, index = picker.get_selected()
-            return inner
-
-        for letter in string.ascii_lowercase + " ":
-            self.register_custom_handler(ord(letter), key_handler(letter))
-
-
 class Status(enum.Enum):
     TO_READ = "to-read"
     CURRENTLY_READING = "currently-reading"
@@ -185,9 +136,9 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     documents = load_items(DIRECTORY)
     utilities.set_escdelay(25)
-    picker = SearchablePicker(options=documents,
-                              title="Books (all shelves)",
-                              options_map_func=lambda x: x.summary)
+    picker = utilities.SearchablePicker(options=documents,
+                                        title="Books (all shelves)",
+                                        options_map_func=lambda x: x.summary)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     picker.register_custom_handler(27, cancel)
