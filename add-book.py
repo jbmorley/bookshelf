@@ -12,7 +12,6 @@ import frontmatter
 import pick
 import requests
 
-import openlibrary
 import utilities
 
 
@@ -21,7 +20,7 @@ BOOKS_DIRECTORY = "~/Projects/jbmorley.co.uk/content/about/books/"
 
 Document = collections.namedtuple("Document", ["content", "metadata"])
 
-class Book(object):
+class GoogleBook(object):
 
     def __init__(self, data):
         self._data = data
@@ -107,7 +106,7 @@ def google_books(query, index=0):
     response_data = response.json()
     if response_data["totalItems"] < 1:
         raise BookNotFound()
-    return [Book(data) for data in response_data['items']]
+    return [GoogleBook(data) for data in response_data['items']]
 
 
 def google_interactive(query, details, accept_single_result=False):
