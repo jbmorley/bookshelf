@@ -1,6 +1,7 @@
 import curses
 import enum
 import os
+import webbrowser
 
 import dateutil
 import frontmatter
@@ -85,7 +86,7 @@ def interactive_search(search_callback):
     default_index = 0
     selected = None
 
-    query = input("Query: ")
+    query = input("Search: ")
     while True:
         books = search_callback(query=query, index=page)
 
@@ -129,7 +130,7 @@ def interactive_search(search_callback):
 
         utilities.set_escdelay(25)
         picker = pick.Picker(books,
-                             f"[Page {page}]\n\nQuery: {query}\n\nv - view\nt - view thumbnail\nn - next page\np - previous page\nr - refine query",
+                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\nr - refine search\nleft/right - change page\nesc - back",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
@@ -151,7 +152,7 @@ def interactive_search(search_callback):
             page = page + 1
             default_index = 0
         elif index == -3:
-            query = input("Refine query: ")
+            query = input("Search: ")
             page = 0
             default_index = 0
         elif index == -4:
