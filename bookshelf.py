@@ -53,7 +53,7 @@ def interactive_books(directory):
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
     picker = utilities.SearchablePicker(options=books.load(directory),
-                                        title="Books (all shelves)",
+                                        title="Books (all shelves)\n\ntab - add book\nesc - exit",
                                         options_map_func=lambda x: x.summary)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
