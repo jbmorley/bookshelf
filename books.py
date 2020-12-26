@@ -193,6 +193,8 @@ def add_book(directory, search_callback):
     metadata["cover"] = cover_basename
     metadata["status"] = "to-read"
     contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
-    with open(os.path.join(directory, f"{new_book.basename}.markdown"), "w") as fh:
+    path = os.path.join(directory, f"{new_book.basename}.markdown")
+    with open(path, "w") as fh:
         fh.write(contents)
         fh.write("\n")
+    return path

@@ -25,7 +25,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-def interactive_books(directory):
+def interactive_books(directory, selected_path=None):
     statuses = list(books.Status)
 
     def next_shelf(picker):
@@ -52,9 +52,12 @@ def interactive_books(directory):
 
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
-    picker = utilities.SearchablePicker(options=books.load(directory),
+    options = books.load(directory)
+    default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
+    picker = utilities.SearchablePicker(options=options,
                                         title="Books\n\ntab - add book\nleft/right - change status\nesc - exit",
-                                        options_map_func=lambda x: x.summary)
+                                        options_map_func=lambda x: x.summary,
+                                        default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     picker.register_custom_handler(ord('\t'), add_book)
@@ -70,12 +73,14 @@ def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
+    new_book_path = None
     directory = books.library_path()
     while True:
         try:
-            interactive_books(directory=directory)
+            interactive_books(directory=directory, selected_path=new_book_path)
+            new_book_path = None
         except AddBookInterrupt:
-            books.add_book(directory=directory, search_callback=googlebooks.search)
+            new_book_path = books.add_book(directory=directory, search_callback=googlebooks.search)
 
 
 if __name__ == "__main__":
