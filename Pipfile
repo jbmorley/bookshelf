@@ -12,6 +12,8 @@ requests = "*"
 pick = "*"
 pytz = "*"
 titlecase = "*"
+lxml = "*"
+jinja2 = "*"
 
 [requires]
 
