@@ -5,6 +5,7 @@ import curses
 import datetime
 import os
 import signal
+import subprocess
 import sys
 import time
 
@@ -18,6 +19,10 @@ import utilities
 
 
 class AddBookInterrupt(Exception):
+    pass
+
+
+class ExitInterrupt(Exception):
     pass
 
 
@@ -48,14 +53,14 @@ def interactive_books(directory, selected_path=None):
         return None, -2
 
     def cancel(picker):
-        exit(0)
+        return None, -3
 
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
     options = books.load(directory)
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
-                                        title="Books\n\ntab - add book\nleft/right - change status\nesc - exit",
+                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\nesc - exit",
                                         options_map_func=lambda x: x.summary,
                                         default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
@@ -66,21 +71,42 @@ def interactive_books(directory, selected_path=None):
     book, index = picker.start()
     if index == -2:
         raise AddBookInterrupt()
+    elif index == -3:
+        raise ExitInterrupt()
     return book
+
+
+class Bookshelf(object):
+
+    def __init__(self):
+        self.directory = books.library_path()
+
+    def run(self):
+        new_book_path = None
+        while True:
+            try:
+                interactive_books(directory=self.directory, selected_path=new_book_path)
+                new_book_path = None
+            except AddBookInterrupt:
+                new_book_path = books.add_book(directory=self.directory, search_callback=googlebooks.search)
+            except ExitInterrupt:
+                answer = input("Save? [y/N] ")
+                if answer == "y":
+                    print("Saving...")
+                    os.chdir(self.directory)
+                    subprocess.check_call(["git", "add", "."])
+                    subprocess.check_call(["git", "commit", "-m", "Updating reading list"])
+                    subprocess.check_call(["git", "push"])
+                exit(0)
+
 
 
 def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
-    new_book_path = None
-    directory = books.library_path()
-    while True:
-        try:
-            interactive_books(directory=directory, selected_path=new_book_path)
-            new_book_path = None
-        except AddBookInterrupt:
-            new_book_path = books.add_book(directory=directory, search_callback=googlebooks.search)
+    bookshelf = Bookshelf()
+    bookshelf.run()
 
 
 if __name__ == "__main__":
