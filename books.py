@@ -87,6 +87,8 @@ def interactive_search(search_callback):
     selected = None
 
     query = input("Search: ")
+    if not query:
+        return
     while True:
         books = search_callback(query=query, index=page)
 
