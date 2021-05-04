@@ -17,8 +17,14 @@ class GoogleBook(object):
         return self._data["volumeInfo"]["language"]
 
     @property
+    def volume_info(self):
+        return self._data["volumeInfo"]
+
+    @property
     def title(self):
-        return self._data["volumeInfo"]["title"]
+        if "subtitle" in self.volume_info:
+            return f"{self.volume_info['title']}: {self.volume_info['subtitle']}"
+        return self.volume_info["title"]
 
     @property
     def authors(self):
