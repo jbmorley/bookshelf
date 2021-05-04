@@ -1,5 +1,6 @@
 import curses
 import enum
+import json
 import os
 import webbrowser
 
@@ -132,7 +133,7 @@ def interactive_search(search_callback):
 
         utilities.set_escdelay(25)
         picker = pick.Picker(books,
-                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\nr - refine search\nleft/right - change page\nesc - back",
+                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\nr - refine search\nleft/right - change page\ni - inspect\nesc - back",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
