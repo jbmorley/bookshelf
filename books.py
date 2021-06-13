@@ -133,7 +133,7 @@ def interactive_search(search_callback):
 
         utilities.set_escdelay(25)
         picker = pick.Picker(books,
-                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\nr - refine search\nleft/right - change page\ni - inspect\nesc - back",
+                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\ntab - refine search\nleft/right - change page\ni - inspect\nesc - back",
                              indicator='*',
                              options_map_func=summary,
                              default_index=default_index)
@@ -143,7 +143,7 @@ def interactive_search(search_callback):
         picker.register_custom_handler(curses.KEY_RIGHT,  next)
         picker.register_custom_handler(ord('p'),  previous)
         picker.register_custom_handler(curses.KEY_LEFT,  previous)
-        picker.register_custom_handler(ord('r'),  refine)
+        picker.register_custom_handler(ord('\t'),  refine)
         picker.register_custom_handler(ord('i'),  inspect)
         picker.register_custom_handler(ord('t'),  thumbnail)
         selected, index = picker.start()
