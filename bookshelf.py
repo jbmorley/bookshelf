@@ -90,8 +90,8 @@ class Bookshelf(object):
             except AddBookInterrupt:
                 new_book_path = books.add_book(directory=self.directory, search_callback=googlebooks.search)
             except ExitInterrupt:
-                answer = input("Save? [y/N] ")
-                if answer == "y":
+                answer = input("Save? [Y/n] ")
+                if answer.lower() == "y" or answer == "":
                     print("Saving...")
                     os.chdir(self.directory)
                     subprocess.check_call(["git", "add", "."])
