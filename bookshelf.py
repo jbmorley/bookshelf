@@ -18,6 +18,13 @@ import googlebooks
 import utilities
 
 
+class EmptyBook(object):
+
+    @property
+    def summary(self):
+        return "Empty"
+
+
 class AddBookInterrupt(Exception):
     pass
 
@@ -58,6 +65,8 @@ def interactive_books(directory, selected_path=None):
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
     options = books.load(directory)
+    if not options:
+        options = [EmptyBook()]
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
                                         title="Bookshelf\n\ntab - add book\nleft/right - change status\nesc - exit",
