@@ -76,12 +76,32 @@ def interactive_books(directory, selected_path=None):
     return book
 
 
+class Chdir(object):
+
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+
+    def __enter__(self):
+        self.pwd = os.getcwd()
+        os.chdir(self.path)
+        return self.path
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.pwd)
+
+
 class Bookshelf(object):
 
     def __init__(self):
         self.directory = books.library_path()
 
     def run(self):
+
+        print("Updating library...")
+        with Chdir(self.directory):
+            subprocess.check_call(["git", "fetch", "origin"])
+            subprocess.check_call(["git", "rebase", "origin/main"])
+
         new_book_path = None
         while True:
             try:
@@ -93,10 +113,10 @@ class Bookshelf(object):
                 answer = input("Save? [Y/n] ")
                 if answer.lower() == "y" or answer == "":
                     print("Saving...")
-                    os.chdir(self.directory)
-                    subprocess.check_call(["git", "add", "."])
-                    subprocess.check_call(["git", "commit", "-m", "Updating reading list"])
-                    subprocess.check_call(["git", "push"])
+                    with Chdir(self.directory):
+                        subprocess.check_call(["git", "add", "."])
+                        subprocess.check_call(["git", "commit", "-m", "Updating reading list"])
+                        subprocess.check_call(["git", "push"])
                 exit(0)
 
 
