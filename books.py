@@ -165,16 +165,10 @@ def interactive_search(search_callback):
             with tempfile.TemporaryDirectory() as temporary_directory:
                 thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
                 utilities.download_image(selected.thumbnail, thumbnail_path)
-                command = utilities.which("termimage")
-                if command is None:
-                    command = utilities.which("open")
-                if command is None:
-                    break
-                subprocess.check_call([command, thumbnail_path])
+                utilities.PREVIEW_IMAGE_COMMAND.run([thumbnail_path])
+                print(json.dumps(selected._data, indent=4))
+                print(selected.metadata)
                 input("Press any key to continue...")
-            print(json.dumps(selected._data, indent=4))
-            print(selected.metadata)
-            input("Press any key to continue...")
         elif index == -5:
             page = max(page - 1, 0)
             default_index = 0

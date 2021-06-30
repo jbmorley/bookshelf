@@ -5,6 +5,7 @@ import json
 import os
 import re
 import string
+import subprocess
 import webbrowser
 
 import dateutil.tz
@@ -79,6 +80,47 @@ class SearchablePicker(pick.Picker):
 
         for letter in string.ascii_lowercase + " ":
             self.register_custom_handler(ord(letter), key_handler(letter))
+
+class CommandNotFound(Exception):
+    pass
+
+
+class Command(object):
+
+    def __init__(self, command):
+        self.command = command
+
+    def run(self, arguments):
+        command = which(self.command)
+        if command is None:
+            raise CommandNotFound
+        subprocess.check_call([command] + arguments)
+
+
+class Wait(object):
+
+    def __init__(self, command):
+        self.command = command
+
+    def run(self, arguments):
+        self.command.run(arguments)
+        input("Press any key to continue...")
+
+
+class CommandSet(object):
+
+    def __init__(self, *args):
+        self.commands = args
+
+    def run(self, arguments):
+        for command in self.commands:
+            try:
+                return command.run(arguments)
+            except CommandNotFound:
+                continue
+
+
+PREVIEW_IMAGE_COMMAND = CommandSet(Wait(Command("termimage")), Command("open"))
 
 
 def set_escdelay(delay):
