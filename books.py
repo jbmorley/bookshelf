@@ -85,95 +85,100 @@ class Book(object):
 
 
 def interactive_search(search_callback):
-    page = 0
-    default_index = 0
-    selected = None
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        page = 0
+        default_index = 0
+        selected = None
 
-    query = input("Search: ")
-    if not query:
-        return
-    while True:
-        books = search_callback(query=query, index=page)
+        query = input("Search: ")
+        if not query:
+            return
+        while True:
+            books = search_callback(query=query, index=page)
 
-        def summary(book):
-            isbn = ""
-            try:
-                isbn = book.isbn
-            except KeyError:
-                pass
-            try:
-                isbn = book.isbn_13
-            except KeyError:
-                pass
-            return f"{book.title[:30]:34}{', '.join(book.authors)[:20]:24}{book.language[:3]:5}{isbn}"
+            def summary(book):
+                isbn = ""
+                try:
+                    isbn = book.isbn
+                except KeyError:
+                    pass
+                try:
+                    isbn = book.isbn_13
+                except KeyError:
+                    pass
+                return f"{book.title[:30]:34}{', '.join(book.authors)[:20]:24}{book.language[:3]:5}{isbn}"
 
-        def show_webpage(picker):
-            selection, index = picker.get_selected()
-            webbrowser.open(selection.url)
+            def show_webpage(picker):
+                selection, index = picker.get_selected()
+                webbrowser.open(selection.url)
 
-        def cancel(picker):
-            return None, -1
+            def cancel(picker):
+                return None, -1
 
-        def next(picker):
-            return None, -2
+            def next(picker):
+                return None, -2
 
-        def previous(picker):
-            if page == 0:
-                return
-            return None, -5
+            def previous(picker):
+                if page == 0:
+                    return
+                return None, -5
 
-        def refine(picker):
-            return None, -3
+            def refine(picker):
+                return None, -3
 
-        def inspect(picker):
-            selection, index = picker.get_selected()
-            return (selection, index), -4
+            def inspect(picker):
+                selection, index = picker.get_selected()
+                return (selection, index), -4
 
-        def thumbnail(picker):
-            selection, index = picker.get_selected()
-            webbrowser.open(selection.thumbnail)
+            def thumbnail(picker):
+                selection, index = picker.get_selected()
+                return (selection, index), -6
 
-        utilities.set_escdelay(25)
-        picker = pick.Picker(books,
-                             f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\ntab - refine search\nleft/right - change page\ni - inspect\nesc - back",
-                             indicator='*',
-                             options_map_func=summary,
-                             default_index=default_index)
-        picker.register_custom_handler(27,  cancel)
-        picker.register_custom_handler(ord('v'),  show_webpage)
-        picker.register_custom_handler(ord('n'),  next)
-        picker.register_custom_handler(curses.KEY_RIGHT,  next)
-        picker.register_custom_handler(ord('p'),  previous)
-        picker.register_custom_handler(curses.KEY_LEFT,  previous)
-        picker.register_custom_handler(ord('\t'),  refine)
-        picker.register_custom_handler(ord('i'),  inspect)
-        picker.register_custom_handler(ord('t'),  thumbnail)
-        selected, index = picker.start()
-        if index >= 0:
-            break
-        elif index == -1:
-            break
-        elif index == -2:
-            page = page + 1
-            default_index = 0
-        elif index == -3:
-            query = input("Search: ")
-            page = 0
-            default_index = 0
-        elif index == -4:
-            selected, default_index = selected
-            with tempfile.TemporaryDirectory() as temporary_directory:
+            utilities.set_escdelay(25)
+            picker = pick.Picker(books,
+                                 f"Add Book ({page + 1})\n\nv - view\nt - view thumbnail\ntab - refine search\nleft/right - change page\ni - inspect\nesc - back",
+                                 indicator='*',
+                                 options_map_func=summary,
+                                 default_index=default_index)
+            picker.register_custom_handler(27,  cancel)
+            picker.register_custom_handler(ord('v'),  show_webpage)
+            picker.register_custom_handler(ord('n'),  next)
+            picker.register_custom_handler(curses.KEY_RIGHT,  next)
+            picker.register_custom_handler(ord('p'),  previous)
+            picker.register_custom_handler(curses.KEY_LEFT,  previous)
+            picker.register_custom_handler(ord('\t'),  refine)
+            picker.register_custom_handler(ord('i'),  inspect)
+            picker.register_custom_handler(ord('t'),  thumbnail)
+            selected, index = picker.start()
+            if index >= 0:
+                break
+            elif index == -1:
+                break
+            elif index == -2:
+                page = page + 1
+                default_index = 0
+            elif index == -3:
+                query = input("Search: ")
+                page = 0
+                default_index = 0
+            elif index == -4:
+                selected, default_index = selected
                 thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
                 utilities.download_image(selected.thumbnail, thumbnail_path)
-                utilities.PREVIEW_IMAGE_COMMAND.run([thumbnail_path])
+                utilities.preview_image(thumbnail_path)
                 print(json.dumps(selected._data, indent=4))
                 print(selected.metadata)
                 input("Press any key to continue...")
-        elif index == -5:
-            page = max(page - 1, 0)
-            default_index = 0
+            elif index == -5:
+                page = max(page - 1, 0)
+                default_index = 0
+            elif index == -6:
+                selected, default_index = selected
+                thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
+                utilities.download_image(selected.thumbnail, thumbnail_path)
+                utilities.preview_image(thumbnail_path)
 
-    return selected
+        return selected
 
 
 def library_path():

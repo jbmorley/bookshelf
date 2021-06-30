@@ -123,6 +123,10 @@ class CommandSet(object):
 PREVIEW_IMAGE_COMMAND = CommandSet(Wait(Command("termimage")), Command("open"))
 
 
+def preview_image(path):
+    PREVIEW_IMAGE_COMMAND.run([path])
+
+
 def set_escdelay(delay):
     os.environ.setdefault('ESCDELAY', str(delay))
 
