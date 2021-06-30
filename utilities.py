@@ -15,6 +15,20 @@ import requests
 Document = collections.namedtuple("Document", ["content", "metadata"])
 
 
+class Chdir(object):
+
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+
+    def __enter__(self):
+        self.pwd = os.getcwd()
+        os.chdir(self.path)
+        return self.path
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.pwd)
+
+
 class BookNotFound(Exception):
     pass
 
@@ -87,3 +101,21 @@ def basename(name):
     name = re.sub(r"[^a-z0-9]+", " ", name.lower())
     name = re.sub(r"\W+", "-", name.strip())
     return name
+
+
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None

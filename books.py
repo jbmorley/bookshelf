@@ -2,6 +2,8 @@ import curses
 import enum
 import json
 import os
+import subprocess
+import tempfile
 import webbrowser
 
 import dateutil
@@ -160,6 +162,16 @@ def interactive_search(search_callback):
             default_index = 0
         elif index == -4:
             selected, default_index = selected
+            with tempfile.TemporaryDirectory() as temporary_directory:
+                thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
+                utilities.download_image(selected.thumbnail, thumbnail_path)
+                command = utilities.which("termimage")
+                if command is None:
+                    command = utilities.which("open")
+                if command is None:
+                    break
+                subprocess.check_call([command, thumbnail_path])
+                input("Press any key to continue...")
             print(json.dumps(selected._data, indent=4))
             print(selected.metadata)
             input("Press any key to continue...")
