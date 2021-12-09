@@ -95,7 +95,7 @@ class Bookshelf(object):
         print("Updating library...")
         with utilities.Chdir(self.directory):
             subprocess.check_call(["git", "fetch", "origin"])
-            subprocess.check_call(["git", "rebase", "origin/main"])
+            subprocess.check_call(["git", "rebase", "--autostash", "origin/main"])
 
         new_book_path = None
         while True:
