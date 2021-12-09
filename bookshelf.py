@@ -62,6 +62,10 @@ def interactive_books(directory, selected_path=None):
     def cancel(picker):
         return None, -3
 
+    def thumbnail(picker):
+        selected, index = picker.get_selected()
+        return selected, -4
+
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
     options = books.load(directory)
@@ -69,12 +73,13 @@ def interactive_books(directory, selected_path=None):
         options = [EmptyBook()]
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
-                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\nesc - exit",
+                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\nesc - exit",
                                         options_map_func=lambda x: x.summary,
                                         default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     picker.register_custom_handler(ord('\t'), add_book)
+    picker.register_custom_handler(ord('\\'), thumbnail)
     picker.register_custom_handler(27, cancel)
 
     book, index = picker.start()
@@ -82,7 +87,9 @@ def interactive_books(directory, selected_path=None):
         raise AddBookInterrupt()
     elif index == -3:
         raise ExitInterrupt()
-    return book
+    elif index == -4:
+        utilities.preview_image(book.cover_path)
+    return book.path
 
 
 class Bookshelf(object):
@@ -100,8 +107,7 @@ class Bookshelf(object):
         new_book_path = None
         while True:
             try:
-                interactive_books(directory=self.directory, selected_path=new_book_path)
-                new_book_path = None
+                new_book_path = interactive_books(directory=self.directory, selected_path=new_book_path)
             except AddBookInterrupt:
                 new_book_path = books.add_book(directory=self.directory, search_callback=googlebooks.search)
             except ExitInterrupt:
