@@ -59,6 +59,10 @@ def interactive_books(directory, selected_path=None):
     def add_book(picker):
         return None, -2
 
+    def delete_book(picker):
+        selected, index = picker.get_selected()
+        return selected, -5
+
     def cancel(picker):
         return None, -3
 
@@ -73,13 +77,14 @@ def interactive_books(directory, selected_path=None):
         options = [EmptyBook()]
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
-                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\nesc - exit",
+                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\ndel - delete\nesc - exit",
                                         options_map_func=lambda x: x.summary,
                                         default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     picker.register_custom_handler(ord('\t'), add_book)
     picker.register_custom_handler(ord('\\'), thumbnail)
+    picker.register_custom_handler(127, delete_book)
     picker.register_custom_handler(27, cancel)
 
     book, index = picker.start()
@@ -89,6 +94,14 @@ def interactive_books(directory, selected_path=None):
         raise ExitInterrupt()
     elif index == -4:
         utilities.preview_image(book.cover_path)
+    elif index == -5:
+        answer = input("Delete book? [y/N] ")
+        if answer.lower() == "y":
+            if os.path.exists(book.cover_path):
+                os.remove(book.cover_path)
+            if os.path.exists(book.path):
+                os.remove(book.path)
+            return
     return book.path
 
 
