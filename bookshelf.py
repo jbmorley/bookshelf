@@ -70,6 +70,10 @@ def interactive_books(directory, selected_path=None):
         selected, index = picker.get_selected()
         return selected, -4
 
+    def edit(picker):
+        selected, index = picker.get_selected()
+        return selected, -6
+
     signal.signal(signal.SIGINT, signal_handler)
     utilities.set_escdelay(25)
     options = books.load(directory)
@@ -77,7 +81,7 @@ def interactive_books(directory, selected_path=None):
         options = [EmptyBook()]
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
-                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\ndel - delete\nesc - exit",
+                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\n+ - edit\ndel - delete\nesc - exit",
                                         options_map_func=lambda x: x.summary,
                                         default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
@@ -86,6 +90,7 @@ def interactive_books(directory, selected_path=None):
     picker.register_custom_handler(ord('\\'), thumbnail)
     picker.register_custom_handler(127, delete_book)
     picker.register_custom_handler(27, cancel)
+    picker.register_custom_handler(ord('+'), edit)
 
     book, index = picker.start()
     if index == -2:
@@ -102,6 +107,8 @@ def interactive_books(directory, selected_path=None):
             if os.path.exists(book.path):
                 os.remove(book.path)
             return
+    elif index == -6:
+        subprocess.check_call([os.environ['EDITOR'], book.path])
     return book.path
 
 
