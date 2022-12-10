@@ -14,10 +14,45 @@ import utilities
 
 
 class Status(enum.Enum):
-    TO_READ = "to-read"
-    CURRENTLY_READING = "currently-reading"
-    READ = "read"
-    ABANDONED = "abandoned"
+    TO_READ = ("to-read", "To Read", lambda x: x.date is None and x.end_date is None)
+    CURRENTLY_READING = ("currently-reading", "Reading", lambda x: x.date is not None and x.end_date is None)
+    READ = ("read", "Read", lambda x: x.end_date is not None)
+    ABANDONED = ("abandoned", "Abandoned", lambda x: x.date is not None)
+    READ_UNKNOWN = ("read", "Read, Unknown", lambda x: x.date is None and x.end_date is None)
+    ABANDONED_UNKNOWN = ("abandoned", "Abandoned, Unknown", lambda x: x.date is None and x.end_date is None)
+
+
+def clear_start_date(book):
+    book.date = None
+
+
+def clear_end_date(book):
+    book.end_date = None
+
+
+def set_start_date(book):
+    book.date = utilities.tznow()
+
+
+def set_end_date(book):
+    book.end_date = utilities.tznow()
+
+
+STATUS_TRANSFORMS = {
+    Status.TO_READ: [clear_start_date, clear_end_date],
+    Status.CURRENTLY_READING: [set_start_date, clear_end_date],
+    Status.READ: [set_end_date],
+    Status.ABANDONED: [set_end_date],
+    Status.READ_UNKNOWN: [clear_start_date, clear_end_date],
+    Status.ABANDONED_UNKNOWN: [clear_start_date, clear_end_date],
+}
+
+
+def get_status(book):
+    for status in list(Status):
+        if status.value[0] == book.raw_status and status.value[2](book):
+            return status
+    exit(f"Unable to determine status for '{book.title}'.")
 
 
 class Book(object):
@@ -35,28 +70,29 @@ class Book(object):
         return os.path.join(os.path.dirname(self.path), self.document.metadata["cover"])
 
     @property
+    def raw_status(self):
+        return self.document.metadata["status"]
+
+    @property
     def status(self):
-        return Status(self.document.metadata["status"])
+        return get_status(self)
 
     @status.setter
     def status(self, status):
-        self.document.metadata["status"] = status.value
-        if status == Status.TO_READ:
-            self.date = None
-            self.end_date = None
-        elif status == Status.CURRENTLY_READING:
-            self.date = utilities.tznow()
-            self.end_date = None
-        elif status == Status.READ or status == Status.ABANDONED:
-            self.end_date = utilities.tznow()
+        self.document.metadata["status"] = status.value[0]
+        transforms = STATUS_TRANSFORMS[status]
+        for transform in transforms:
+            transform(self)
 
     @property
     def summary(self):
-        return f"{self.title} [{self.status.value}]"
+        return f"{self.title} [{self.status.value[1]}]"
 
     @property
     def date(self):
-        return dateutil.parser.parse(self.document.metadata["date"])
+        if "date" in self.document.metadata:
+            return self.document.metadata["date"]
+        return None
 
     @date.setter
     def date(self, date):
@@ -70,7 +106,9 @@ class Book(object):
 
     @property
     def end_date(self):
-        return dateutil.parser.parse(self.document.metadata["end_date"])
+        if "end_date" in self.document.metadata:
+            return self.document.metadata["end_date"]
+        return None
 
     @end_date.setter
     def end_date(self, end_date):
