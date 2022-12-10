@@ -98,7 +98,11 @@ def interactive_books(directory, selected_path=None):
     elif index == -3:
         raise ExitInterrupt()
     elif index == -4:
-        utilities.preview_image(book.cover_path)
+        cover_path = book.cover_path
+        if cover_path is not None:
+            utilities.preview_image(cover_path)
+        else:
+            input("Missing cover.")
     elif index == -5:
         answer = input("Delete book? [y/N] ")
         if answer.lower() == "y":

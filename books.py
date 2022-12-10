@@ -67,7 +67,9 @@ class Book(object):
 
     @property
     def cover_path(self):
-        return os.path.join(os.path.dirname(self.path), self.document.metadata["cover"])
+        if "cover" in self.document.metadata:
+            return os.path.join(os.path.dirname(self.path), self.document.metadata["cover"])
+        return None
 
     @property
     def raw_status(self):
@@ -205,9 +207,7 @@ def interactive_search(search_callback):
                 default_index = 0
             elif index == -4:
                 selected, default_index = selected
-                thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
-                utilities.download_image(selected.thumbnail, thumbnail_path)
-                utilities.preview_image(thumbnail_path)
+                preview_cover(temporary_directory, selected)
                 print(json.dumps(selected._data, indent=4))
                 print(selected.metadata)
                 input("Press any key to continue...")
@@ -216,11 +216,19 @@ def interactive_search(search_callback):
                 default_index = 0
             elif index == -6:
                 selected, default_index = selected
-                thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
-                utilities.download_image(selected.thumbnail, thumbnail_path)
-                utilities.preview_image(thumbnail_path)
+                preview_cover(temporary_directory, selected)
 
         return selected
+
+
+def preview_cover(temporary_directory, book):
+    thumbnail = book.thumbnail
+    if thumbnail is not None:
+        thumbnail_path = os.path.join(temporary_directory, "thumbnail.jpg")
+        utilities.download_image(thumbnail, thumbnail_path)
+        utilities.preview_image(thumbnail_path)
+    else:
+        input("Missing cover.")
 
 
 def library_path():
@@ -243,11 +251,16 @@ def add_book(directory, search_callback):
     new_book = interactive_search(search_callback=search_callback)
     if new_book is None:
         return
-    cover_basename = f"{new_book.basename}.jpg"
-    utilities.download_image(new_book.thumbnail, os.path.join(directory, cover_basename))
+
     metadata = dict(new_book.metadata)
-    metadata["cover"] = cover_basename
     metadata["status"] = "to-read"
+
+    thumbnail = new_book.thumbnail
+    if thumbnail is not None:
+        cover_basename = f"{new_book.basename}.jpg"
+        utilities.download_image(thumbnail, os.path.join(directory, cover_basename))
+        metadata["cover"] = cover_basename
+
     contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
     path = os.path.join(directory, f"{new_book.basename}.markdown")
     with open(path, "w") as fh:
