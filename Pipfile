@@ -1,5 +1,6 @@
 [[source]]
 
+name = "pypi"
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 
@@ -9,7 +10,7 @@ verify_ssl = true
 python-dateutil = "*"
 python-frontmatter = "*"
 requests = "*"
-pick = "*"
+pick = "==1.6.0"
 pytz = "*"
 titlecase = "*"
 lxml = "*"
