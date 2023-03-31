@@ -89,6 +89,7 @@ def interactive_books(directory, selected_path=None):
     picker.register_custom_handler(ord('\t'), add_book)
     picker.register_custom_handler(ord('\\'), thumbnail)
     picker.register_custom_handler(127, delete_book)
+    picker.register_custom_handler(curses.KEY_BACKSPACE, delete_book)
     picker.register_custom_handler(27, cancel)
     picker.register_custom_handler(ord('+'), edit)
 
