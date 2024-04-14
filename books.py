@@ -68,7 +68,7 @@ class Book(object):
     @property
     def cover_path(self):
         if "cover" in self.document.metadata:
-            return os.path.join(os.path.dirname(self.path), self.document.metadata["cover"])
+            return os.path.join(os.path.dirname(self.path), self.document.metadata["thumbnail"])
         return None
 
     @property
@@ -257,9 +257,9 @@ def add_book(directory, search_callback):
 
     thumbnail = new_book.thumbnail
     if thumbnail is not None:
-        cover_basename = f"{new_book.basename}.jpg"
+        cover_basename = f"{new_book.basename}-cover.jpg"
         utilities.download_image(thumbnail, os.path.join(directory, cover_basename))
-        metadata["cover"] = cover_basename
+        metadata["thumbnail"] = cover_basename
 
     contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
     path = os.path.join(directory, f"{new_book.basename}.markdown")
