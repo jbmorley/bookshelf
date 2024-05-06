@@ -29,6 +29,10 @@ class AddBookInterrupt(Exception):
     pass
 
 
+class AddBookManualInterrupt(Exception):
+    pass
+
+
 class ExitInterrupt(Exception):
     pass
 
@@ -59,6 +63,9 @@ def interactive_books(directory, selected_path=None):
     def add_book(picker):
         return None, -2
 
+    def add_book_manual(picker):
+        return None, -7
+
     def delete_book(picker):
         selected, index = picker.get_selected()
         return selected, -5
@@ -81,12 +88,13 @@ def interactive_books(directory, selected_path=None):
         options = [EmptyBook()]
     default_index = [book.path for book in options].index(selected_path) if selected_path is not None else 0
     picker = utilities.SearchablePicker(options=options,
-                                        title="Bookshelf\n\ntab - add book\nleft/right - change status\n\\ - view thumbnail\n+ - edit\ndel - delete\nesc - exit",
+                                        title="Bookshelf\n\ntab - add book\n` - add book manually\nleft/right - change status\n\\ - view thumbnail\n+ - edit\ndel - delete\nesc - exit",
                                         options_map_func=lambda x: x.summary,
                                         default_index=default_index)
     picker.register_custom_handler(curses.KEY_LEFT, previous_shelf)
     picker.register_custom_handler(curses.KEY_RIGHT, next_shelf)
     picker.register_custom_handler(ord('\t'), add_book)
+    picker.register_custom_handler(ord('`'), add_book_manual)
     picker.register_custom_handler(ord('\\'), thumbnail)
     picker.register_custom_handler(127, delete_book)
     picker.register_custom_handler(curses.KEY_BACKSPACE, delete_book)
@@ -107,13 +115,15 @@ def interactive_books(directory, selected_path=None):
     elif index == -5:
         answer = input("Delete book? [y/N] ")
         if answer.lower() == "y":
-            if os.path.exists(book.cover_path):
+            if book.cover_path is not None and os.path.exists(book.cover_path):
                 os.remove(book.cover_path)
             if os.path.exists(book.path):
                 os.remove(book.path)
             return
     elif index == -6:
         subprocess.check_call([os.environ['EDITOR'], book.path])
+    elif index == -7:
+        raise AddBookManualInterrupt()
     return book.path
 
 
@@ -135,6 +145,9 @@ class Bookshelf(object):
                 new_book_path = interactive_books(directory=self.directory, selected_path=new_book_path)
             except AddBookInterrupt:
                 new_book_path = books.add_book(directory=self.directory, search_callback=googlebooks.search)
+            except AddBookManualInterrupt:
+                new_book = books.add_book_manual()
+                new_book_path = books.import_book(self.directory, new_book)
             except ExitInterrupt:
                 answer = input("Save? [Y/n] ")
                 if answer.lower() == "y" or answer == "":

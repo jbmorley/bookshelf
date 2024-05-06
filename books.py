@@ -178,9 +178,12 @@ def interactive_search(search_callback):
                 selection, index = picker.get_selected()
                 return (selection, index), -6
 
+            def manual(picker):
+                return None, -7
+
             utilities.set_escdelay(25)
             picker = pick.Picker(books,
-                                 f"Add Book ({page + 1})\n\nv - view\n\\ - view thumbnail\ntab - refine search\nleft/right - change page\ni - inspect\nesc - back",
+                                 f"Add Book ({page + 1})\n\nv - view\n\\ - view thumbnail\ntab - refine search\nleft/right - change page\ni - inspect\nm - manual entry\nesc - back",
                                  indicator='*',
                                  options_map_func=summary,
                                  default_index=default_index)
@@ -193,6 +196,7 @@ def interactive_search(search_callback):
             picker.register_custom_handler(ord('\t'),  refine)
             picker.register_custom_handler(ord('i'),  inspect)
             picker.register_custom_handler(ord('\\'),  thumbnail)
+            picker.register_custom_handler(ord('m'),  manual)
             selected, index = picker.start()
             if index >= 0:
                 break
@@ -217,8 +221,39 @@ def interactive_search(search_callback):
             elif index == -6:
                 selected, default_index = selected
                 preview_cover(temporary_directory, selected)
+            elif index == -7:
+                return add_book_manual()
 
         return selected
+
+
+def add_book_manual():
+    title = input("Title: ")
+    author = input("Author: ")
+    thumbnail = input("Cover: ")
+    return ManualBook(title, author, thumbnail if thumbnail else None)
+
+
+class ManualBook(object):
+
+    def __init__(self, title, author, thumbnail):
+        self.title = title
+        self.authors = [author]
+        self.thumbnail = None
+        self.thumbnail = thumbnail
+
+    @property
+    def metadata(self):
+        metadata = {
+            "title": self.title,
+            "authors": self.authors,
+            "category": "books",
+        }
+        return metadata
+
+    @property
+    def basename(self):
+        return utilities.basename(f"{self.title} {' '.join(self.authors)}")
 
 
 def preview_cover(temporary_directory, book):
@@ -247,11 +282,7 @@ def load(path):
     return books
 
 
-def add_book(directory, search_callback):
-    new_book = interactive_search(search_callback=search_callback)
-    if new_book is None:
-        return
-
+def import_book(directory, new_book):
     metadata = dict(new_book.metadata)
     metadata["status"] = "to-read"
 
@@ -267,3 +298,10 @@ def add_book(directory, search_callback):
         fh.write(contents)
         fh.write("\n")
     return path
+
+
+def add_book(directory, search_callback):
+    new_book = interactive_search(search_callback=search_callback)
+    if new_book is None:
+        return
+    return import_book(directory, new_book)
