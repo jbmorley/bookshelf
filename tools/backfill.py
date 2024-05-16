@@ -209,7 +209,7 @@ def main():
     directory = os.path.expanduser(BOOKS_DIRECTORY)
 
     files = [os.path.join(directory, f) for f in os.listdir(os.path.expanduser(BOOKS_DIRECTORY))
-             if re.match(r"^[0-9]+\.markdown$", f)]
+             if re.match(r"^[0-9]+\.md$", f)]
 
     for f in files:
         book = frontmatter.load(f)

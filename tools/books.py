@@ -48,7 +48,7 @@ def main():
         metadata["end_date"] = date
 
     destination = os.path.expanduser(BOOKS_DIRECTORY)
-    with open(os.path.join(destination, f"{selected.basename}.markdown"), "w") as fh:
+    with open(os.path.join(destination, f"{selected.basename}.md"), "w") as fh:
         fh.write(frontmatter.dumps(Document(content="", metadata=metadata)))
         fh.write("\n")
 

@@ -275,8 +275,8 @@ def library_path():
 
 def load(path):
     paths = [os.path.join(path, f) for f in os.listdir(path)
-             if (f.lower().endswith(".markdown") and
-                 not f.lower().endswith("index.markdown"))]
+             if (f.lower().endswith(".md") and
+                 not f.lower().endswith("index.md"))]
     books = [Book(path) for path in paths]
     books = sorted(books, key=lambda x: x.title)
     return books
@@ -293,7 +293,7 @@ def import_book(directory, new_book):
         metadata["thumbnail"] = cover_basename
 
     contents = frontmatter.dumps(utilities.Document(content="", metadata=metadata))
-    path = os.path.join(directory, f"{new_book.basename}.markdown")
+    path = os.path.join(directory, f"{new_book.basename}.md")
     with open(path, "w") as fh:
         fh.write(contents)
         fh.write("\n")
