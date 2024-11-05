@@ -12,10 +12,15 @@ import time
 import dateutil.tz
 import frontmatter
 import pick
+import yaml
 
 import books
 import googlebooks
 import utilities
+
+
+CONFIG_DIRECTORY = os.path.expanduser("~/.config/bookshelf")
+CONFIG_PATH = os.path.join(CONFIG_DIRECTORY, "config.yaml")
 
 
 class EmptyBook(object):
@@ -129,8 +134,8 @@ def interactive_books(directory, selected_path=None):
 
 class Bookshelf(object):
 
-    def __init__(self):
-        self.directory = books.library_path()
+    def __init__(self, path):
+        self.directory = path
 
     def run(self):
 
@@ -164,7 +169,13 @@ def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
     options = parser.parse_args()
 
-    bookshelf = Bookshelf()
+    try:
+        with open(CONFIG_PATH, "r") as fh:
+            config = yaml.safe_load(fh)
+    except FileNotFoundError:
+        exit(f"Configuration file '{CONFIG_PATH}' not found.")
+
+    bookshelf = Bookshelf(path=os.path.expanduser(config["library_path"]))
     bookshelf.run()
 
 

@@ -266,13 +266,6 @@ def preview_cover(temporary_directory, book):
         input("Missing cover.")
 
 
-def library_path():
-    try:
-        return os.path.expanduser(os.environ["BOOKSHELF_LIBRARY_PATH"])
-    except KeyError:
-        exit("Use the BOOKSHELF_LIBRARY_PATH environment variable to specify the location of your library.")
-
-
 def load(path):
     paths = [os.path.join(path, f) for f in os.listdir(path)
              if (f.lower().endswith(".md") and
