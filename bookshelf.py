@@ -137,12 +137,13 @@ class Bookshelf(object):
     def __init__(self, path):
         self.directory = path
 
-    def run(self):
+    def run(self, offline):
 
-        print("Updating library...")
-        with utilities.Chdir(self.directory):
-            subprocess.check_call(["git", "fetch", "origin"])
-            subprocess.check_call(["git", "rebase", "--autostash", "origin/main"])
+        if not offline:
+            print("Updating library...")
+            with utilities.Chdir(self.directory):
+                subprocess.check_call(["git", "fetch", "origin"])
+                subprocess.check_call(["git", "rebase", "--autostash", "origin/main"])
 
         new_book_path = None
         while True:
@@ -154,19 +155,20 @@ class Bookshelf(object):
                 new_book = books.add_book_manual()
                 new_book_path = books.import_book(self.directory, new_book)
             except ExitInterrupt:
-                answer = input("Save? [Y/n] ")
-                if answer.lower() == "y" or answer == "":
-                    print("Saving...")
-                    with utilities.Chdir(self.directory):
-                        subprocess.check_call(["git", "add", "."])
-                        subprocess.check_call(["git", "commit", "-m", "Updating reading list"])
-                        subprocess.check_call(["git", "push"])
+                if not offline:
+                    answer = input("Save? [Y/n] ")
+                    if answer.lower() == "y" or answer == "":
+                        print("Saving...")
+                        with utilities.Chdir(self.directory):
+                            subprocess.check_call(["git", "add", "."])
+                            subprocess.check_call(["git", "commit", "-m", "Updating reading list"])
+                            subprocess.check_call(["git", "push"])
                 exit(0)
-
 
 
 def main():
     parser = argparse.ArgumentParser(description="Book tracker.")
+    parser.add_argument("--offline", "-o", action="store_true", default=False, help="work offline")
     options = parser.parse_args()
 
     try:
@@ -176,7 +178,7 @@ def main():
         exit(f"Configuration file '{CONFIG_PATH}' not found.")
 
     bookshelf = Bookshelf(path=os.path.expanduser(config["library_path"]))
-    bookshelf.run()
+    bookshelf.run(offline=options.offline)
 
 
 if __name__ == "__main__":
